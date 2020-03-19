@@ -18,7 +18,9 @@ class TwoLayerNet:
         """
         self.reg = reg
         # TODO Create necessary layers
-        raise Exception("Not implemented!")
+        self.relul = ReLULayer()
+        self.fully_connect_1 = FullyConnectedLayer(n_input, hidden_layer_size) 
+        self.fully_connect_2 = FullyConnectedLayer(hidden_layer_size, n_output)
 
     def compute_loss_and_gradients(self, X, y):
         """
@@ -33,14 +35,26 @@ class TwoLayerNet:
         # clear parameter gradients aggregated from the previous pass
         # TODO Set parameter gradient to zeros
         # Hint: using self.params() might be useful!
-        raise Exception("Not implemented!")
+        for i in self.params():
+            self.params()[i] = np.zeros_like(self.params()[i].value)
+           
+        out1 = self.relul.forward(self.fully_connect_1.forward(X))
+        out2 = self.fully_connect_2.forward(out1)
         
         # TODO Compute loss and fill param gradients
         # by running forward and backward passes through the model
         
         # After that, implement l2 regularization on all params
         # Hint: self.params() is useful again!
-        raise Exception("Not implemented!")
+        loss, grad = softmax_with_cross_entropy(out2, y)
+
+        d_out2 = self.fully_connect_2.backward(grad)
+        self.fully_connect_1.backward(self.relul.backward(d_out2))
+
+        for param in self.params():
+            l2_loss, l2_grad = l2_regularization(self.params()[param].value, self.reg)
+            loss += l2_loss
+            self.params()[param].grad += l2_grad
 
         return loss
 
@@ -58,15 +72,15 @@ class TwoLayerNet:
         # Hint: some of the code of the compute_loss_and_gradients
         # can be reused
         pred = np.zeros(X.shape[0], np.int)
+        out1 = self.relul.forward(self.fully_connect_1.forward(X))
+        out2 = self.fully_connect_2.forward(out1)
+        pred = out2.argmax(axis=1)
 
-        raise Exception("Not implemented!")
         return pred
 
     def params(self):
-        result = {}
+        result = {'W1': self.fully_connect_1.W, 'B1': self.fully_connect_1.B, 'W2': self.fully_connect_2.W, 'B2': self.fully_connect_2.B}
 
         # TODO Implement aggregating all of the params
-
-        raise Exception("Not implemented!")
 
         return result

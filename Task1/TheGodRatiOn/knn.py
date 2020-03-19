@@ -1,5 +1,5 @@
 import numpy as np
-
+from scipy import stats
 
 class KNN:
     """
@@ -55,7 +55,10 @@ class KNN:
         for i_test in range(num_test):
             for i_train in range(num_train):
                 # TODO: Fill dists[i_test][i_train]
+                dists[i_test][i_train] = np.sum(np.abs(X[i_test] - self.train_X[i_train]))
+                #классическое вычитание одной матрицы из другой поэлементно - ничего сложного
                 pass
+            return dists
 
     def compute_distances_one_loop(self, X):
         '''
@@ -75,7 +78,10 @@ class KNN:
         for i_test in range(num_test):
             # TODO: Fill the whole row of dists[i_test]
             # without additional loops or list comprehensions
+            dists[i_test] = np.sum(np.abs(self.train_X - X[i_test]), 1)
+            #используем свойство вычитания одного вектора из матрицы, чтобы избавится от одного из циклов, сумма по столбцам
             pass
+        return dists
 
     def compute_distances_no_loops(self, X):
         '''
@@ -94,7 +100,11 @@ class KNN:
         # Using float32 to to save memory - the default is float64
         dists = np.zeros((num_test, num_train), np.float32)
         # TODO: Implement computing all distances with no loops!
+        dists = np.sum(np.abs(X.reshape(num_test,1,3072) - self.train_X), 2)
+        #https://docs.scipy.org/doc/numpy/user/basics.broadcasting.html и идея в том, 
+        #чтобы вычесть 2 матрицы через броaдкаст недостающих данных.
         pass
+        return dists
 
     def predict_labels_binary(self, dists):
         '''
@@ -113,6 +123,8 @@ class KNN:
         for i in range(num_test):
             # TODO: Implement choosing best class based on k
             # nearest training samples
+            indexes = dists[i].argsort()[:self.k]
+            pred[i] = bool(np.median(self.train_y[indexes]))
             pass
         return pred
 
@@ -134,5 +146,8 @@ class KNN:
         for i in range(num_test):
             # TODO: Implement choosing best class based on k
             # nearest training samples
+            indexes = dists[i].argsort()[:self.k]
+            neighbors = self.train_y[indexes]
+            pred[i] = stats.mode(neighbors)[0][0]
             pass
         return pred

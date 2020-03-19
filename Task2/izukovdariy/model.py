@@ -1,6 +1,6 @@
 import numpy as np
 
-from layers import FullyConnectedLayer, ReLULayer, softmax_with_cross_entropy, l2_regularization
+from layers import FullyConnectedLayer, ReLULayer, softmax_with_cross_entropy, l2_regularization, softmax
 
 
 class TwoLayerNet:
@@ -18,7 +18,11 @@ class TwoLayerNet:
         """
         self.reg = reg
         # TODO Create necessary layers
-        raise Exception("Not implemented!")
+        self.layers = [
+            FullyConnectedLayer(n_input, hidden_layer_size),
+            ReLULayer(),
+            FullyConnectedLayer(hidden_layer_size, n_output)
+        ]
 
     def compute_loss_and_gradients(self, X, y):
         """
@@ -33,14 +37,24 @@ class TwoLayerNet:
         # clear parameter gradients aggregated from the previous pass
         # TODO Set parameter gradient to zeros
         # Hint: using self.params() might be useful!
-        raise Exception("Not implemented!")
+        for param_name, param in self.params().items():
+            param.grad = np.zeros_like(param.value)
         
         # TODO Compute loss and fill param gradients
         # by running forward and backward passes through the model
+        result = self.layers[0].forward(X)
+        for layer in self.layers[1:]:
+            result = layer.forward(result)
+        loss, grad = softmax_with_cross_entropy(result, y)
+        for layer in reversed(self.layers):
+            grad = layer.backward(grad)
         
         # After that, implement l2 regularization on all params
         # Hint: self.params() is useful again!
-        raise Exception("Not implemented!")
+        for param_name, param in self.params().items():
+            loss_r, grad = l2_regularization(param.value, self.reg)
+            param.grad += grad
+            loss += loss_r
 
         return loss
 
@@ -59,7 +73,10 @@ class TwoLayerNet:
         # can be reused
         pred = np.zeros(X.shape[0], np.int)
 
-        raise Exception("Not implemented!")
+        result = self.layers[0].forward(X)
+        for layer in self.layers[1:]:
+            result = layer.forward(result)
+        pred = np.argmax(softmax(result), axis=1)
         return pred
 
     def params(self):
@@ -67,6 +84,12 @@ class TwoLayerNet:
 
         # TODO Implement aggregating all of the params
 
-        raise Exception("Not implemented!")
+        i = 0
+        for layer in self.layers:
+            param = layer.params()
+            if param:
+                result['W'+str(i)] = param['W']
+                result['B'+str(i)] = param['B']
+                i += 1
 
         return result

@@ -51,11 +51,17 @@ class KNN:
         '''
         num_train = self.train_X.shape[0]
         num_test = X.shape[0]
+        # print(self.train_X[0])
+        # print(X[0])
+        # print(self.train_X[0] - X[0])
+        # print(np.abs(self.train_X[0] - X[0]))
+        # print(np.sum(np.abs(self.train_X[0] - X[0])))
         dists = np.zeros((num_test, num_train), np.float32)
         for i_test in range(num_test):
             for i_train in range(num_train):
                 # TODO: Fill dists[i_test][i_train]
-                pass
+                dists[i_test][i_train] = np.sum(np.abs(self.train_X[i_train] - X[i_test]))
+        return dists
 
     def compute_distances_one_loop(self, X):
         '''
@@ -72,10 +78,15 @@ class KNN:
         num_train = self.train_X.shape[0]
         num_test = X.shape[0]
         dists = np.zeros((num_test, num_train), np.float32)
+        # print(X[0])
+        # print(self.train_X)
+        # print(np.sum(np.abs(self.train_X[:] - X[0])))
+        # print(np.sum(np.abs(self.train_X[:] - X[0]), axis=1))
         for i_test in range(num_test):
             # TODO: Fill the whole row of dists[i_test]
             # without additional loops or list comprehensions
-            pass
+            dists[i_test] = np.sum(np.abs(self.train_X[:] - X[i_test]), axis=1)
+        return dists
 
     def compute_distances_no_loops(self, X):
         '''
@@ -93,8 +104,12 @@ class KNN:
         num_test = X.shape[0]
         # Using float32 to to save memory - the default is float64
         dists = np.zeros((num_test, num_train), np.float32)
+        # print(X[:, None])
+        # print(self.train_X)
+        # print(np.sum(np.abs(X[:, None] - self.train_X), axis=2))
         # TODO: Implement computing all distances with no loops!
-        pass
+        dists = np.sum(np.abs(X[:, None] - self.train_X), axis=2, dtype='float32')
+        return dists
 
     def predict_labels_binary(self, dists):
         '''
@@ -110,10 +125,36 @@ class KNN:
         '''
         num_test = dists.shape[0]
         pred = np.zeros(num_test, np.bool)
+        # print(self.train_X.shape)
+        # print(self.train_y.shape)
+        # print(dists.shape)
+        # for j in range(dists.shape[1]):
+        #     print([dists[0][j]], self.train_y[j])
+        # print(dists.shape[1])
+        # print(dists.shape[0])
+        # print(sorted(dists[0]))
+        # print(sorted(dists[0])[0:self.k])
         for i in range(num_test):
             # TODO: Implement choosing best class based on k
             # nearest training samples
-            pass
+            arr_with_res = [[dists[i, elem], self.train_y[elem]] for elem in range(dists.shape[1])]
+            # print(arr_with_res)
+            # print(sorted(arr_with_res)[:self.k])
+            # print(sorted(arr_with_res)[:3])
+            true_cnt = filter(lambda x: x[1] == True, sorted(arr_with_res)[:self.k])
+            false_cnt = filter(lambda x: x[1] == False, sorted(arr_with_res)[:self.k])
+            true_len = len(list(true_cnt))
+            false_len = len(list(false_cnt))
+            # print(true_len > false_len)
+            if true_len > false_len:
+                pred[i] = True
+            else:
+                pred[i] = False
+            # print(pred)
+            # print(sorted(arr_with_res)[:2])
+            # print("")
+            # print(sorted(arr_with_res)[:2][0][1])
+        # print(pred)
         return pred
 
     def predict_labels_multiclass(self, dists):
@@ -129,10 +170,20 @@ class KNN:
            for every test sample
         '''
         num_test = dists.shape[0]
-        num_test = dists.shape[0]
+        # print(dists.shape)
         pred = np.zeros(num_test, np.int)
         for i in range(num_test):
             # TODO: Implement choosing best class based on k
             # nearest training samples
-            pass
+            arr_with_res = [[dists[i, elem], self.train_y[elem]] for elem in range(dists.shape[1])]
+            # print(arr_with_res)
+            arr_with_res = sorted(arr_with_res)[:self.k]
+            # print(arr_with_res)
+            num_arr = [arr_with_res[i][1] for i in range(len(arr_with_res))]
+            cnt = [[num, num_arr.count(num)] for num in range(10)]
+            res = sorted(cnt, key=lambda x: x[1])[-1]
+            pred[i] = res[0]
+            # print("")
+            # print(sorted(arr_with_res)[:3])
+            # pass
         return pred

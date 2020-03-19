@@ -17,8 +17,9 @@ class TwoLayerNet:
         reg, float - L2 regularization strength
         """
         self.reg = reg
-        # TODO Create necessary layers
-        raise Exception("Not implemented!")
+        self.l1 = FullyConnectedLayer(n_input, hidden_layer_size)
+        self.relu = ReLULayer()
+        self.l2 = FullyConnectedLayer(hidden_layer_size, n_output)
 
     def compute_loss_and_gradients(self, X, y):
         """
@@ -29,18 +30,17 @@ class TwoLayerNet:
         X, np array (batch_size, input_features) - input data
         y, np array of int (batch_size) - classes
         """
-        # Before running forward and backward pass through the model,
-        # clear parameter gradients aggregated from the previous pass
-        # TODO Set parameter gradient to zeros
-        # Hint: using self.params() might be useful!
-        raise Exception("Not implemented!")
-        
-        # TODO Compute loss and fill param gradients
-        # by running forward and backward passes through the model
-        
-        # After that, implement l2 regularization on all params
-        # Hint: self.params() is useful again!
-        raise Exception("Not implemented!")
+        for k in self.params().keys():
+            self.params()[k].grad = np.zeros_like(self.params()[k].grad)
+
+        out = self.l2.forward(self.relu.forward(self.l1.forward(X)))
+        loss, grad = softmax_with_cross_entropy(out, y)
+        self.l1.backward(self.relu.backward(self.l2.backward(grad)))
+
+        for k in self.params().keys():
+            l2_loss, l2_grad = l2_regularization(self.params()[k].value, self.reg)
+            loss += l2_loss
+            self.params()[k].grad += l2_grad
 
         return loss
 
@@ -54,19 +54,10 @@ class TwoLayerNet:
         Returns:
           y_pred, np.array of int (test_samples)
         """
-        # TODO: Implement predict
-        # Hint: some of the code of the compute_loss_and_gradients
-        # can be reused
-        pred = np.zeros(X.shape[0], np.int)
-
-        raise Exception("Not implemented!")
-        return pred
+        return self.l2.forward(self.relu.forward(self.l1.forward(X))).argmax(axis=1)
 
     def params(self):
-        result = {}
-
-        # TODO Implement aggregating all of the params
-
-        raise Exception("Not implemented!")
-
-        return result
+        return {"W1": self.l1.W,
+                "B1": self.l1.B,
+                "W2": self.l2.W,
+                "B2": self.l2.B}

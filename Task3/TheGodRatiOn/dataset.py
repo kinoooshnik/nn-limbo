@@ -42,4 +42,3 @@ def random_split_train_val(X, y, num_val, seed=42):
 
     return train_X, train_y, val_X, val_y
     
-    

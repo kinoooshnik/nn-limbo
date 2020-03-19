@@ -4,6 +4,7 @@ from copy import deepcopy
 from metrics import multiclass_accuracy
 
 
+
 class Dataset:
     ''' 
     Utility class to hold training and validation data
@@ -28,7 +29,6 @@ class Trainer:
                  learning_rate_decay=1.0):
         '''
         Initializes the trainer
-
         Arguments:
         model - neural network model
         dataset, instance of Dataset class - data to train on
@@ -124,11 +124,3 @@ class Trainer:
             val_acc_history.append(val_accuracy)
 
         return loss_history, train_acc_history, val_acc_history
-
-            
-
-
-        
-
-                
-        

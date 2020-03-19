@@ -18,7 +18,11 @@ class TwoLayerNet:
         """
         self.reg = reg
         # TODO Create necessary layers
-        raise Exception("Not implemented!")
+        self.fc1 = FullyConnectedLayer(n_input, hidden_layer_size)
+        self.relu = ReLULayer()
+        self.fc2 = FullyConnectedLayer(hidden_layer_size, n_output)
+        
+        self.model = [self.fc1, self.relu, self.fc2]
 
     def compute_loss_and_gradients(self, X, y):
         """
@@ -33,15 +37,27 @@ class TwoLayerNet:
         # clear parameter gradients aggregated from the previous pass
         # TODO Set parameter gradient to zeros
         # Hint: using self.params() might be useful!
-        raise Exception("Not implemented!")
+        for layer in self.model:
+            layer.reset_grad()
         
         # TODO Compute loss and fill param gradients
         # by running forward and backward passes through the model
+        x = X.copy()
+        for layer in self.model:
+            x = layer.forward(x)
         
+        loss, d_out = softmax_with_cross_entropy(x, y)
+        
+        for layer in reversed(self.model):
+            d_out = layer.backward(d_out)
+            
         # After that, implement l2 regularization on all params
         # Hint: self.params() is useful again!
-        raise Exception("Not implemented!")
-
+        for key in self.params():
+            l2_loss, l2_grad = l2_regularization(self.params()[key].value, self.reg)
+            loss += l2_loss
+            self.params()[key].grad += l2_grad
+        
         return loss
 
     def predict(self, X):
@@ -57,16 +73,15 @@ class TwoLayerNet:
         # TODO: Implement predict
         # Hint: some of the code of the compute_loss_and_gradients
         # can be reused
-        pred = np.zeros(X.shape[0], np.int)
-
-        raise Exception("Not implemented!")
+        pred = X
+        for layer in self.model:
+            pred = layer.forward(pred)
+        pred = pred.argmax(axis = 1)
+        
         return pred
 
     def params(self):
-        result = {}
-
         # TODO Implement aggregating all of the params
-
-        raise Exception("Not implemented!")
+        result = {'W1': self.fc1.W, 'B1': self.fc1.B, 'W2': self.fc2.W, 'B2': self.fc2.B}
 
         return result

@@ -87,6 +87,7 @@ class Trainer:
         train_acc_history = []
         val_acc_history = []
         
+        print("Epoch %d" %(self.num_epochs))
         for epoch in range(self.num_epochs):
             shuffled_indices = np.arange(num_train)
             np.random.shuffle(shuffled_indices)
@@ -100,8 +101,10 @@ class Trainer:
                 # use model to generate loss and gradients for all
                 # the params
 
-                raise Exception("Not implemented!")
-
+                batch = np.array([self.dataset.train_X[i] for i in batch_indices]).astype(np.float)
+                target = np.array([self.dataset.train_y[i] for i in batch_indices]).astype(np.int)
+                loss = self.model.compute_loss_and_gradients(batch, target)
+               
                 for param_name, param in self.model.params().items():
                     optimizer = self.optimizers[param_name]
                     param.value = optimizer.update(param.value, param.grad, self.learning_rate)
@@ -110,8 +113,8 @@ class Trainer:
 
             if np.not_equal(self.learning_rate_decay, 1.0):
                 # TODO: Implement learning rate decay
-                raise Exception("Not implemented!")
-
+                self.learning_rate *= self.learning_rate_decay
+                
             ave_loss = np.mean(batch_losses)
 
             train_accuracy = self.compute_accuracy(self.dataset.train_X,

@@ -18,7 +18,11 @@ class TwoLayerNet:
         """
         self.reg = reg
         # TODO Create necessary layers
-        raise Exception("Not implemented!")
+
+        self.fc1 = FullyConnectedLayer(n_input, hidden_layer_size)
+        self.ReLU1 = ReLULayer()
+        self.fc2 = FullyConnectedLayer(hidden_layer_size, n_output)
+
 
     def compute_loss_and_gradients(self, X, y):
         """
@@ -33,16 +37,30 @@ class TwoLayerNet:
         # clear parameter gradients aggregated from the previous pass
         # TODO Set parameter gradient to zeros
         # Hint: using self.params() might be useful!
-        raise Exception("Not implemented!")
+
+        params = self.params()
+        for k in params.keys():
+            params[k].grad = np.zeros_like(params[k].value)
         
         # TODO Compute loss and fill param gradients
         # by running forward and backward passes through the model
         
         # After that, implement l2 regularization on all params
         # Hint: self.params() is useful again!
-        raise Exception("Not implemented!")
+
+        out = self.fc2.forward(self.ReLU1.forward(self.fc1.forward(X)))
+
+        loss, grad = softmax_with_cross_entropy(out, y)
+
+        self.fc1.backward(self.ReLU1.backward(self.fc2.backward(grad)))
+
+        for k in params.keys():
+            l2_loss, l2_grad = l2_regularization(params[k].value, self.reg)
+            loss += l2_loss
+            params[k].grad += l2_grad
 
         return loss
+
 
     def predict(self, X):
         """
@@ -59,14 +77,21 @@ class TwoLayerNet:
         # can be reused
         pred = np.zeros(X.shape[0], np.int)
 
-        raise Exception("Not implemented!")
+        out = self.fc2.forward(self.ReLU1.forward(self.fc1.forward(X)))
+        pred = out.argmax(axis=1)
+
         return pred
+
 
     def params(self):
         result = {}
 
         # TODO Implement aggregating all of the params
 
-        raise Exception("Not implemented!")
+        result['W1'] = self.fc1.W
+        result['B1'] = self.fc1.B
+
+        result['W2'] = self.fc2.W
+        result['B2'] = self.fc2.B
 
         return result

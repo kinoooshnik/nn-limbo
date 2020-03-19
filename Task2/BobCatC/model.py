@@ -17,8 +17,11 @@ class TwoLayerNet:
         reg, float - L2 regularization strength
         """
         self.reg = reg
-        # TODO Create necessary layers
-        raise Exception("Not implemented!")
+        self.layers = [
+            FullyConnectedLayer(n_input, hidden_layer_size),
+            ReLULayer(),
+            FullyConnectedLayer(hidden_layer_size, n_output)
+        ]
 
     def compute_loss_and_gradients(self, X, y):
         """
@@ -33,14 +36,31 @@ class TwoLayerNet:
         # clear parameter gradients aggregated from the previous pass
         # TODO Set parameter gradient to zeros
         # Hint: using self.params() might be useful!
-        raise Exception("Not implemented!")
-        
+        for _, param in self.params().items():
+            param.grad = np.zeros(param.grad.shape)
+
         # TODO Compute loss and fill param gradients
         # by running forward and backward passes through the model
         
         # After that, implement l2 regularization on all params
         # Hint: self.params() is useful again!
-        raise Exception("Not implemented!")
+
+        temp = X
+        for layer in self.layers:
+            temp = layer.forward(temp)
+
+        predictions = temp
+
+        loss, dL = softmax_with_cross_entropy(predictions, y)
+
+        d_temp = dL
+        for layer in reversed(self.layers):
+            d_temp = layer.backward(d_temp)
+
+        for _, param in self.params().items():
+            loss_p, grad_p = l2_regularization(param.value, self.reg)
+            loss += loss_p
+            param.grad += grad_p
 
         return loss
 
@@ -57,16 +77,19 @@ class TwoLayerNet:
         # TODO: Implement predict
         # Hint: some of the code of the compute_loss_and_gradients
         # can be reused
-        pred = np.zeros(X.shape[0], np.int)
+        temp = X
+        for layer in self.layers:
+            temp = layer.forward(temp)
 
-        raise Exception("Not implemented!")
+        pred = np.argmax(temp, axis=1)
         return pred
 
     def params(self):
-        result = {}
-
-        # TODO Implement aggregating all of the params
-
-        raise Exception("Not implemented!")
+        result = {
+            'W1': self.layers[0].W,
+            'W2': self.layers[2].W,
+            'B1': self.layers[0].B,
+            'B2': self.layers[2].B,
+        }
 
         return result

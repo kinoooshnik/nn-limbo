@@ -21,7 +21,12 @@ def check_gradient(f, x, delta=1e-5, tol=1e-4):
     fx, analytic_grad = f(x)
     analytic_grad = analytic_grad.copy()
 
+    orig_x = x.copy()
+    fx, analytic_grad = f(x)
+    assert np.all(np.isclose(orig_x, x, tol)), "Functions shouldn't modify input variables"
+
     assert analytic_grad.shape == x.shape
+    analytic_grad = analytic_grad.copy()
 
     it = np.nditer(x, flags=['multi_index'], op_flags=['readwrite'])
     while not it.finished:
@@ -29,8 +34,16 @@ def check_gradient(f, x, delta=1e-5, tol=1e-4):
         analytic_grad_at_ix = analytic_grad[ix]
         numeric_grad_at_ix = 0
 
+        plus_delta = x.copy()
+        plus_delta[ix] += delta
+
+        minus_delta = x.copy()
+        minus_delta[ix] -= delta
+
+        numeric_grad_at_ix = (f(plus_delta)[0] - f(minus_delta)[0]) / (2 * delta)
+
+
         # TODO Copy from previous assignment
-        raise Exception("Not implemented!")
 
         if not np.isclose(numeric_grad_at_ix, analytic_grad_at_ix, tol):
             print("Gradients are different at %s. Analytic: %2.5f, Numeric: %2.5f" % (

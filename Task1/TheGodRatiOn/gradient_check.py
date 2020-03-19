@@ -33,8 +33,18 @@ def check_gradient(f, x, delta=1e-5, tol = 1e-4):
         ix = it.multi_index
         analytic_grad_at_ix = analytic_grad[ix]
         numeric_grad_at_ix = 0
-
+        
         # TODO compute value of numeric gradient of f to idx
+        
+        x0 = x.copy()
+        x1 = x.copy()
+        x0[ix]+=delta
+        x0[ix]-=delta
+        
+        numeric_grad_at_ix = (f(x0)[0] - f(x1)[0])/(2 * delta)
+        
+        #по стандартной формулы производной функции в (.)
+        
         if not np.isclose(numeric_grad_at_ix, analytic_grad_at_ix, tol):
             print("Gradients are different at %s. Analytic: %2.5f, Numeric: %2.5f" % (ix, analytic_grad_at_ix, numeric_grad_at_ix))
             return False
